@@ -4,9 +4,11 @@ import { useEffect, useState } from "react";
 
 const navLinks = [
   { href: "#about", label: "About" },
+  { href: "#skills", label: "Skills" },
   { href: "#projects", label: "Projects" },
-  { href: "#experience", label: "Experience" },
-  { href: "#testimonials", label: "Testimonials" },
+  { href: "#journey", label: "Journey" },
+  { href: "#education", label: "Education" },
+  { href: "#contact", label: "Contact" },
 ];
 
 export const Navbar = () => {
@@ -31,10 +33,10 @@ export const Navbar = () => {
     >
       <nav className="container mx-auto px-6 flex items-center justify-between">
         <a
-          href="#"
+          href="#hero"
           className="text-xl font-bold tracking-tight hover:text-primary"
         >
-          PM<span className="text-primary">.</span>
+          HD<span className="text-primary">.</span>
         </a>
 
         {/* Desktop Nav */}
@@ -54,7 +56,7 @@ export const Navbar = () => {
 
         {/* CTA Button */}
         <div className="hidden md:block">
-          <Button size="sm">Contact Me</Button>
+          <Button size="sm">Let's Connect</Button>
         </div>
 
         {/* Mobile Menu Button */}
@@ -82,7 +84,7 @@ export const Navbar = () => {
             ))}
 
             <Button onClick={() => setIsMobileMenuOpen(false)}>
-              Contact Me
+                Let's Connect
             </Button>
           </div>
         </div>
