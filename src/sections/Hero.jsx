@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/Button";
 import {
   ArrowRight,
@@ -8,11 +9,6 @@ import {
 } from "lucide-react";
 
 import { AnimatedBorderButton } from "../components/AnimatedBorderButton";
-
-import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Float, Html } from "@react-three/drei";
-import { Suspense, useRef, useState } from "react";
-import * as THREE from "three";
 
 import {
   SiReact,
@@ -53,408 +49,534 @@ const techNodes = [
     name: "React",
     icon: SiReact,
     color: "#61DAFB",
-    position: [0, 1.9, 0.1],
+    position: { x: 50, y: 13 },
     value: 92,
-  },
-  {
-    name: "Node.js",
-    icon: SiNodedotjs,
-    color: "#68A063",
-    position: [1.85, 0.65, 0.1],
-    value: 88,
-  },
- 
-  {
-    name: "PostgreSQL",
-    icon: SiPostgresql,
-    color: "#4169E1",
-    position: [-1.15, -1.65, 0.1],
-    value: 86,
-  },
-  {
-    name: "MongoDB",
-    icon: SiMongodb,
-    color: "#47A248",
-    position: [-1.85, 0.65, 0.1],
-    value: 85,
   },
   {
     name: "TypeScript",
     icon: SiTypescript,
     color: "#3178C6",
-    position: [-0.85, 1.65, 0.1],
+    position: { x: 22, y: 29 },
     value: 90,
   },
   {
     name: "JavaScript",
     icon: SiJavascript,
     color: "#F7DF1E",
-    position: [0.9, 1.65, 0.1],
+    position: { x: 78, y: 29 },
     value: 91,
+  },
+  {
+    name: "MongoDB",
+    icon: SiMongodb,
+    color: "#47A248",
+    position: { x: 12, y: 52 },
+    value: 85,
+  },
+  {
+    name: "Node.js",
+    icon: SiNodedotjs,
+    color: "#68A063",
+    position: { x: 88, y: 52 },
+    value: 88,
+  },
+  {
+    name: "PostgreSQL",
+    icon: SiPostgresql,
+    color: "#4169E1",
+    position: { x: 25, y: 76 },
+    value: 86,
   },
   {
     name: "Docker",
     icon: SiDocker,
     color: "#2496ED",
-    position: [2.0, -0.8, 0.1],
+    position: { x: 75, y: 76 },
     value: 80,
   },
 ];
 
 /* =========================================================
-   TECH LOGO NODE
+   INTERACTIVE TECH ORB
 ========================================================= */
 
-const TechNode = ({
-  tech,
-  index,
-  activeTech,
-  setActiveTech,
-}) => {
-  const groupRef = useRef();
+const TechOrb = () => {
+  const orbRef = useRef(null);
 
-  const Icon = tech.icon;
-
-  useFrame((state) => {
-    if (!groupRef.current) return;
-
-    const time = state.clock.elapsedTime;
-
-    groupRef.current.position.y =
-      tech.position[1] +
-      Math.sin(time * 1.2 + index) * 0.07;
-
-    groupRef.current.position.x =
-      tech.position[0] +
-      Math.cos(time * 0.8 + index) * 0.025;
-
-    groupRef.current.rotation.z =
-      Math.sin(time + index) * 0.04;
+  const [activeTech, setActiveTech] = useState(null);
+  const [rotation, setRotation] = useState({
+    x: 0,
+    y: 0,
   });
 
-  const isActive = activeTech === tech.name;
+  useEffect(() => {
+    const handleMouseMove = (event) => {
+      if (!orbRef.current) return;
+
+      const rect = orbRef.current.getBoundingClientRect();
+
+      const x =
+        (event.clientX - rect.left) / rect.width;
+
+      const y =
+        (event.clientY - rect.top) / rect.height;
+
+      if (x >= 0 && x <= 1 && y >= 0 && y <= 1) {
+        setRotation({
+          x: (0.5 - y) * 10,
+          y: (x - 0.5) * 12,
+        });
+      }
+    };
+
+    const handleMouseLeave = () => {
+      setRotation({
+        x: 0,
+        y: 0,
+      });
+    };
+
+    const element = orbRef.current;
+
+    element?.addEventListener("mousemove", handleMouseMove);
+    element?.addEventListener("mouseleave", handleMouseLeave);
+
+    return () => {
+      element?.removeEventListener("mousemove", handleMouseMove);
+      element?.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, []);
 
   return (
-    <group
-      ref={groupRef}
-      position={tech.position}
-      onPointerOver={(e) => {
-        e.stopPropagation();
-
-        setActiveTech(tech.name);
-
-        document.body.style.cursor = "pointer";
-      }}
-      onPointerOut={() => {
-        setActiveTech(null);
-
-        document.body.style.cursor = "default";
+    <div
+      ref={orbRef}
+      className="relative w-full aspect-square overflow-hidden rounded-2xl"
+      style={{
+        perspective: "1200px",
       }}
     >
-      {/* Outer glow */}
-      <mesh scale={isActive ? 1.35 : 1}>
-        <sphereGeometry args={[0.32, 32, 32]} />
+      {/* =================================================
+          BACKGROUND GLOW
+      ================================================= */}
 
-        <meshBasicMaterial
-          color={tech.color}
-          transparent
-          opacity={isActive ? 0.18 : 0.07}
-        />
-      </mesh>
-
-      {/* Glass logo container */}
-      <mesh scale={isActive ? 1.18 : 1}>
-        <circleGeometry args={[0.27, 48]} />
-
-        <meshBasicMaterial
-          color="#071313"
-          transparent
-          opacity={0.95}
-        />
-      </mesh>
-
-      {/* Logo */}
-      <Html
-        center
-        distanceFactor={5}
+      <div
+        className="absolute inset-0"
         style={{
-          pointerEvents: "none",
-          transition: "all 0.25s ease",
-          transform: `scale(${isActive ? 1.25 : 1})`,
+          background:
+            "radial-gradient(circle at center, rgba(32,178,166,0.16), transparent 55%)",
+        }}
+      />
+
+      {/* Small background particles */}
+
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(16)].map((_, index) => (
+          <span
+            key={index}
+            className="absolute w-1 h-1 rounded-full bg-primary/40 animate-pulse"
+            style={{
+              left: `${10 + ((index * 37) % 80)}%`,
+              top: `${8 + ((index * 53) % 82)}%`,
+              animationDelay: `${index * 0.4}s`,
+              animationDuration: `${2 + (index % 3)}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      {/* =================================================
+          3D SCENE
+      ================================================= */}
+
+      <div
+        className="absolute inset-0 transition-transform duration-500 ease-out"
+        style={{
+          transform: `
+            rotateX(${rotation.x}deg)
+            rotateY(${rotation.y}deg)
+          `,
+          transformStyle: "preserve-3d",
         }}
       >
+
+        {/* =================================================
+            ORBIT RINGS
+        ================================================= */}
+
         <div
-          style={{
-            width: isActive ? "54px" : "46px",
-            height: isActive ? "54px" : "46px",
-            borderRadius: "50%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(5, 15, 15, 0.9)",
-            border: `1px solid ${tech.color}`,
-            boxShadow: isActive
-              ? `0 0 25px ${tech.color}, inset 0 0 15px ${tech.color}40`
-              : `0 0 10px ${tech.color}30`,
-          }}
+          className="
+            absolute
+            left-1/2
+            top-1/2
+            w-[70%]
+            aspect-square
+            -translate-x-1/2
+            -translate-y-1/2
+            rounded-full
+            border
+            border-primary/25
+          "
+        />
+
+        <div
+          className="
+            absolute
+            left-1/2
+            top-1/2
+            w-[84%]
+            h-[48%]
+            -translate-x-1/2
+            -translate-y-1/2
+            rounded-[50%]
+            border
+            border-cyan-400/20
+            rotate-[25deg]
+          "
+        />
+
+        <div
+          className="
+            absolute
+            left-1/2
+            top-1/2
+            w-[84%]
+            h-[48%]
+            -translate-x-1/2
+            -translate-y-1/2
+            rounded-[50%]
+            border
+            border-primary/15
+            -rotate-[25deg]
+          "
+        />
+
+        {/* =================================================
+            CONNECTION LINES
+        ================================================= */}
+
+        <svg
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          viewBox="0 0 100 100"
         >
-          <Icon
-            size={isActive ? 28 : 23}
-            color={tech.color}
+          {techNodes.map((tech) => (
+            <line
+              key={tech.name}
+              x1="50"
+              y1="50"
+              x2={tech.position.x}
+              y2={tech.position.y}
+              stroke={tech.color}
+              strokeWidth={
+                activeTech === tech.name
+                  ? "0.35"
+                  : "0.12"
+              }
+              opacity={
+                activeTech === tech.name
+                  ? "0.65"
+                  : "0.18"
+              }
+              className="transition-all duration-300"
+            />
+          ))}
+        </svg>
+
+        {/* =================================================
+            CENTER CORE
+        ================================================= */}
+
+        <div
+          className="
+            absolute
+            left-1/2
+            top-1/2
+            -translate-x-1/2
+            -translate-y-1/2
+            w-[38%]
+            aspect-square
+          "
+        >
+
+          {/* Outer glow */}
+
+          <div
+            className="
+              absolute
+              -inset-8
+              rounded-full
+              blur-3xl
+            "
+            style={{
+              background:
+                "radial-gradient(circle, rgba(32,178,166,.35), transparent 65%)",
+            }}
           />
+
+          {/* Rotating ring */}
+
+          <div
+            className="
+              absolute
+              inset-0
+              rounded-full
+              border
+              border-primary/50
+              animate-spin
+            "
+            style={{
+              animationDuration: "14s",
+            }}
+          />
+
+          {/* Second ring */}
+
+          <div
+            className="
+              absolute
+              inset-3
+              rounded-full
+              border
+              border-dashed
+              border-cyan-400/25
+              animate-spin
+            "
+            style={{
+              animationDuration: "20s",
+              animationDirection: "reverse",
+            }}
+          />
+
+          {/* Core */}
+
+          <div
+            className="
+              absolute
+              inset-7
+              rounded-full
+              bg-[#061113]/95
+              border
+              border-primary/40
+              flex
+              items-center
+              justify-center
+              overflow-hidden
+            "
+            style={{
+              boxShadow:
+                "0 0 45px rgba(32,178,166,.25), inset 0 0 30px rgba(32,178,166,.08)",
+            }}
+          >
+
+            {/* Grid */}
+
+            <div
+              className="absolute inset-0 opacity-20"
+              style={{
+                backgroundImage: `
+                  linear-gradient(rgba(32,178,166,.3) 1px, transparent 1px),
+                  linear-gradient(90deg, rgba(32,178,166,.3) 1px, transparent 1px)
+                `,
+                backgroundSize: "10px 10px",
+              }}
+            />
+
+            {/* Core content */}
+
+            <div className="relative text-center">
+
+        
+
+      
+              <div className="flex items-center justify-center gap-1.5 mt-3">
+
+                <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+
+              
+
+              </div>
+
+            </div>
+          </div>
         </div>
-      </Html>
 
-      {/* Connection line toward core */}
-      <ConnectionLine
-        position={tech.position}
-        color={tech.color}
-        active={isActive}
-      />
+        {/* =================================================
+            TECH NODES
+        ================================================= */}
 
-      {/* Hover label */}
-      {isActive && (
-        <Html
-          position={[0, -0.55, 0]}
-          center
-          distanceFactor={5}
-          style={{
-            pointerEvents: "none",
-          }}
-        >
-          <div
-            style={{
-              padding: "5px 10px",
-              borderRadius: "999px",
-              background: "rgba(5, 15, 15, 0.9)",
-              border: `1px solid ${tech.color}60`,
-              color: "#fff",
-              fontSize: "11px",
-              whiteSpace: "nowrap",
-              boxShadow: `0 0 15px ${tech.color}30`,
-            }}
-          >
-            {tech.name}
-          </div>
-        </Html>
-      )}
-    </group>
-  );
-};
+        {techNodes.map((tech, index) => {
+          const Icon = tech.icon;
 
-/* =========================================================
-   CONNECTION LINE
-========================================================= */
+          const active = activeTech === tech.name;
 
-const ConnectionLine = ({ position, color, active }) => {
-  const points = [
-    new THREE.Vector3(0, 0, 0),
-    new THREE.Vector3(
-      -position[0] * 0.68,
-      -position[1] * 0.68,
-      0
-    ),
-  ];
+          return (
+            <div
+              key={tech.name}
+              className="absolute"
+              style={{
+                left: `${tech.position.x}%`,
+                top: `${tech.position.y}%`,
+                transform: "translate(-50%, -50%)",
+              }}
+            >
 
-  const geometry = new THREE.BufferGeometry().setFromPoints(
-    points
-  );
+              <button
+                type="button"
+                onMouseEnter={() =>
+                  setActiveTech(tech.name)
+                }
+                onMouseLeave={() =>
+                  setActiveTech(null)
+                }
+                className="relative group"
+                style={{
+                  animation: `tech-float ${
+                    3 + (index % 3)
+                  }s ease-in-out infinite`,
+                  animationDelay: `${index * 0.2}s`,
+                }}
+              >
 
-  return (
-    <line geometry={geometry}>
-      <lineBasicMaterial
-        color={color}
-        transparent
-        opacity={active ? 0.65 : 0.18}
-      />
-    </line>
-  );
-};
+                {/* Glow */}
 
-/* =========================================================
-   ORB
-========================================================= */
+                <span
+                  className="absolute inset-[-12px] rounded-full blur-xl transition-all duration-300"
+                  style={{
+                    background: tech.color,
+                    opacity: active ? 0.45 : 0.08,
+                  }}
+                />
 
-const OrbCore = ({
-  activeTech,
-  setActiveTech,
-}) => {
-  const orbRef = useRef();
-  const ringRef = useRef();
-  const ring2Ref = useRef();
+                {/* Logo */}
 
-  const { pointer } = useThree();
+                <span
+                  className="
+                    relative
+                    flex
+                    items-center
+                    justify-center
+                    w-12
+                    h-12
+                    md:w-14
+                    md:h-14
+                    rounded-full
+                    bg-[#050b0d]/95
+                    backdrop-blur-xl
+                    border
+                    transition-all
+                    duration-300
+                  "
+                  style={{
+                    borderColor: active
+                      ? tech.color
+                      : `${tech.color}55`,
+                    boxShadow: active
+                      ? `0 0 25px ${tech.color}80`
+                      : `0 0 12px ${tech.color}15`,
+                    transform: active
+                      ? "scale(1.18)"
+                      : "scale(1)",
+                  }}
+                >
 
-  useFrame((state, delta) => {
-    if (!orbRef.current) return;
+                  <Icon
+                    className="w-6 h-6 md:w-7 md:h-7"
+                    style={{
+                      color: tech.color,
+                      filter: active
+                        ? `drop-shadow(0 0 7px ${tech.color})`
+                        : "none",
+                    }}
+                  />
 
-    /*
-      Cursor movement
-    */
+                </span>
 
-    const targetX = -pointer.y * 0.35;
-    const targetY = pointer.x * 0.55;
+                {/* Tooltip */}
 
-    orbRef.current.rotation.x = THREE.MathUtils.lerp(
-      orbRef.current.rotation.x,
-      targetX,
-      0.055
-    );
+                <span
+                  className="
+                    absolute
+                    left-1/2
+                    top-full
+                    mt-2
+                    -translate-x-1/2
+                    px-2.5
+                    py-1
+                    rounded-full
+                    whitespace-nowrap
+                    bg-black/90
+                    border
+                    text-[9px]
+                    opacity-0
+                    group-hover:opacity-100
+                    transition-opacity
+                    duration-200
+                    pointer-events-none
+                  "
+                  style={{
+                    borderColor: `${tech.color}50`,
+                    color: tech.color,
+                  }}
+                >
+                  {tech.name}
+                </span>
 
-    orbRef.current.rotation.y = THREE.MathUtils.lerp(
-      orbRef.current.rotation.y,
-      targetY,
-      0.055
-    );
+              </button>
+            </div>
+          );
+        })}
 
-    /*
-      Continuous rotation
-    */
+      </div>
 
-    orbRef.current.rotation.z += delta * 0.08;
+      {/* =================================================
+          TOP LABELS
+      ================================================= */}
 
-    if (ringRef.current) {
-      ringRef.current.rotation.z += delta * 0.12;
-      ringRef.current.rotation.y =
-        pointer.x * 0.2;
-    }
+     
 
-    if (ring2Ref.current) {
-      ring2Ref.current.rotation.z -= delta * 0.16;
-      ring2Ref.current.rotation.x =
-        pointer.y * 0.2;
-    }
-  });
+      <div className="absolute top-5 right-5 text-right">
 
-  return (
-    <group ref={orbRef}>
+        <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground">
+          System Status
+        </div>
 
-      {/* Main wireframe orb */}
+        <div className="text-sm font-semibold text-primary">
+          {activeTech || "Full Stack"}
+        </div>
 
-      <mesh>
-        <icosahedronGeometry args={[1.35, 5]} />
+      </div>
 
-        <meshBasicMaterial
-          color="#20B2A6"
-          wireframe
-          transparent
-          opacity={0.28}
-        />
-      </mesh>
+      {/* =================================================
+          BOTTOM INFO
+      ================================================= */}
 
-      {/* Inner sphere */}
+      <div className="absolute bottom-5 left-5">
 
-      <mesh>
-        <sphereGeometry args={[1, 64, 64]} />
+        <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground">
+          {activeTech
+            ? `${activeTech} Focus`
+            : "Stack Power"}
+        </div>
 
-        <meshStandardMaterial
-          color="#061313"
-          emissive="#20B2A6"
-          emissiveIntensity={0.3}
-          transparent
-          opacity={0.92}
-        />
-      </mesh>
+        <div className="text-2xl font-bold text-primary">
+          {activeTech
+            ? techNodes.find(
+                (t) => t.name === activeTech
+              )?.value
+            : 87}
+          %
+        </div>
 
-      {/* Inner network */}
+      </div>
 
-      <mesh>
-        <sphereGeometry args={[1.03, 32, 32]} />
+      <div className="absolute bottom-5 right-5">
 
-        <meshBasicMaterial
-          color="#20B2A6"
-          wireframe
-          transparent
-          opacity={0.22}
-        />
-      </mesh>
+        <div className="px-3 py-1.5 rounded-full bg-black/30 border border-white/5 text-[8px] text-muted-foreground">
+          Move • Hover
+        </div>
 
-      {/* Core light */}
+      </div>
 
-      <pointLight
-        color="#20B2A6"
-        intensity={8}
-        distance={6}
-      />
-
-      {/* Orbit ring */}
-
-      <mesh
-        ref={ringRef}
-        rotation={[Math.PI / 2, 0, 0]}
-      >
-        <torusGeometry
-          args={[1.75, 0.018, 16, 128]}
-        />
-
-        <meshBasicMaterial
-          color="#20B2A6"
-          transparent
-          opacity={0.65}
-        />
-      </mesh>
-
-      {/* Second orbit */}
-
-      <mesh
-        ref={ring2Ref}
-        rotation={[Math.PI / 3, 0.3, 0]}
-      >
-        <torusGeometry
-          args={[1.55, 0.012, 16, 128]}
-        />
-
-        <meshBasicMaterial
-          color="#38BDF8"
-          transparent
-          opacity={0.35}
-        />
-      </mesh>
-
-      {/* Center label */}
-
-      <Float
-        speed={2}
-        rotationIntensity={0.15}
-        floatIntensity={0.2}
-      >
-        <Html
-          center
-          distanceFactor={5}
-          style={{
-            pointerEvents: "none",
-          }}
-        >
-          <div
-            style={{
-              textAlign: "center",
-              color: "#20B2A6",
-              fontSize: "11px",
-              letterSpacing: "3px",
-              fontWeight: 600,
-              textShadow:
-                "0 0 15px rgba(32,178,166,.8)",
-            }}
-          >
-            FULL
-            <br />
-            STACK
-          </div>
-        </Html>
-      </Float>
-
-      {/* Tech logos */}
-
-      {techNodes.map((tech, index) => (
-        <TechNode
-          key={tech.name}
-          tech={tech}
-          index={index}
-          activeTech={activeTech}
-          setActiveTech={setActiveTech}
-        />
-      ))}
-    </group>
+    </div>
   );
 };
 
@@ -463,9 +585,6 @@ const OrbCore = ({
 ========================================================= */
 
 export const Hero = () => {
-  const [activeTech, setActiveTech] =
-    useState(null);
-
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden">
 
@@ -481,7 +600,7 @@ export const Hero = () => {
         <div className="absolute inset-0 bg-gradient-to-b from-background/20 via-background/80 to-background" />
       </div>
 
-      {/* Floating dots */}
+      {/* Floating Green Dots */}
 
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(30)].map((_, index) => (
@@ -629,77 +748,7 @@ export const Hero = () => {
                 "
               >
 
-                <div className="relative w-full aspect-[4/5] rounded-2xl overflow-hidden bg-black/20">
-
-                  <Canvas
-                    camera={{
-                      position: [0, 0, 5],
-                      fov: 45,
-                    }}
-                    dpr={[1, 2]}
-                    gl={{
-                      antialias: true,
-                      alpha: true,
-                    }}
-                  >
-
-                    <Suspense fallback={null}>
-
-                      <ambientLight intensity={0.3} />
-
-                      <directionalLight
-                        position={[3, 4, 5]}
-                        intensity={1.5}
-                      />
-
-                      <OrbCore
-                        activeTech={activeTech}
-                        setActiveTech={setActiveTech}
-                      />
-
-                    </Suspense>
-
-                  </Canvas>
-
-                  {/* Header */}
-
-                  <div className="absolute top-5 left-5 pointer-events-none">
-
-                    <div className="text-xs uppercase tracking-[0.25em] text-muted-foreground">
-                      Interactive
-                    </div>
-
-                    <div className="text-lg font-semibold text-primary">
-                      Tech Core
-                    </div>
-
-                  </div>
-
-                  {/* Interaction hint */}
-
-                  <div className="absolute bottom-5 left-1/2 -translate-x-1/2 pointer-events-none">
-
-                    <div className="px-4 py-2 rounded-full glass text-xs text-muted-foreground whitespace-nowrap">
-
-                      Move cursor • Hover a logo
-
-                    </div>
-
-                  </div>
-
-                  {/* Active tech */}
-
-                  <div className="absolute bottom-5 right-5 pointer-events-none">
-
-                    <div className="text-xs text-muted-foreground">
-                      {activeTech
-                        ? `${activeTech} Focus`
-                        : "Interactive Stack"}
-                    </div>
-
-                  </div>
-
-                </div>
+                <TechOrb />
 
                 {/* Availability */}
 
@@ -719,17 +768,7 @@ export const Hero = () => {
 
                 {/* Projects */}
 
-                <div className="absolute -top-4 -left-4 glass rounded-xl px-4 py-3 animate-float animation-delay-500">
-
-                  <div className="text-2xl font-bold text-primary">
-                    4+
-                  </div>
-
-                  <div className="text-xs text-muted-foreground">
-                    Projects
-                  </div>
-
-                </div>
+                
 
               </div>
             </div>
@@ -773,7 +812,7 @@ export const Hero = () => {
 
       </div>
 
-      {/* Scroll */}
+      {/* Scroll Indicator */}
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-fade-in animation-delay-800">
 

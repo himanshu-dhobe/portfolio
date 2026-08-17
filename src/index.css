@@ -182,3 +182,13 @@
       0 0 80px color-mix(in srgb, var(--color-primary) 25%, transparent);
   }
 }
+@keyframes tech-float {
+  0%,
+  100% {
+    margin-top: 0px;
+  }
+
+  50% {
+    margin-top: -8px;
+  }
+}
